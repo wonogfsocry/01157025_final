@@ -6,19 +6,28 @@
 //
 
 import SwiftUI
+import SwiftData
+import Charts
+import TipKit
 
 struct ContentView: View {
+    @State private var isLoggedIn = false
+    @State private var currentUser: User? = nil
+    @StateObject private var weatherViewModel = WeatherViewModel()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            if isLoggedIn {
+                MainTabView(currentUser: $currentUser, isLoggedIn: $isLoggedIn)
+                    .environmentObject(weatherViewModel)
+            } else {
+                LoginView(isLoggedIn: $isLoggedIn, currentUser: $currentUser)
+            }
         }
-        .padding()
     }
 }
 
 #Preview {
     ContentView()
+        .modelContainer(for: [User.self, ActivityRecord.self, Goal.self]/*, inMemory: true*/)
 }
