@@ -60,7 +60,13 @@ struct ActivityListView: View {
                                     selection: Binding<Date>(
                                         get: { startDate },
                                         set: { newValue in
-                                            startDate = Calendar.current.startOfDay(for: newValue) // 设置为选定日期的 12:00 AM
+                                            let newStartDate = Calendar.current.startOfDay(for: newValue) // 设置为选定日期的 12:00 AM
+                                            startDate = newStartDate
+                                            
+                                            // 如果 To 的时间早于 From，则将 To 调整为当天的 11:59 PM
+                                            if endDate < newStartDate {
+                                                endDate = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: newStartDate) ?? newStartDate
+                                            }
                                         }
                                     ),
                                     displayedComponents: .date
@@ -79,7 +85,14 @@ struct ActivityListView: View {
                                     selection: Binding<Date>(
                                         get: { endDate },
                                         set: { newValue in
-                                            endDate = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: newValue) ?? newValue // 设置为选定日期的 11:59 PM
+                                            // 设置 To 为当天的 11:59 PM
+                                            let newEndDate = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: newValue) ?? newValue
+                                            endDate = newEndDate
+                                            
+                                            // 如果 To 比 From 早，则调整 To 为 From 当天的 11:59 PM
+                                            if newEndDate < startDate {
+                                                endDate = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: startDate) ?? startDate
+                                            }
                                         }
                                     ),
                                     displayedComponents: .date
@@ -336,18 +349,24 @@ struct AddActivityView: View {
                         Button(action: addRecord) {
                             Text("Add Record")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.white) // 设置禁用时的文字颜色
                                 .padding()
                                 .frame(maxWidth: .infinity)
                                 .background(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [Color.blue, Color.purple]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
+                                    Group {
+                                        if isAddButtonDisabled() {
+                                            Color.gray.opacity(0.5) // 禁用时为灰色背景
+                                        } else {
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        }
+                                    }
                                 )
                                 .cornerRadius(12)
-                                .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 3)
+                                .shadow(color: .black.opacity(isAddButtonDisabled() ? 0 : 0.2), radius: 5, x: 0, y: 3) // 禁用时去掉阴影
                         }
                         .disabled(isAddButtonDisabled())
                     }
