@@ -136,20 +136,26 @@ struct SetGoalView: View {
                             Button(action: setGoal) {
                                 Text("Set Goal")
                                     .font(.headline)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color.white) // 动态设置文字颜色
                                     .padding()
                                     .frame(maxWidth: .infinity)
                                     .background(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color.blue, Color.purple]),
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
+                                        Group {
+                                            if isButtonDisabled() {
+                                                Color.gray.opacity(0.5) // 禁用时为灰色背景
+                                            } else {
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            }
+                                        }
                                     )
                                     .cornerRadius(12)
-                                    .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 3)
+                                    .shadow(color: .black.opacity(isButtonDisabled() ? 0 : 0.2), radius: 5, x: 0, y: 3) // 禁用时去掉阴影
                             }
-                            .disabled(Double(targetValue) ?? 0 <= 0 || startTime > endTime)
+                            .disabled(isButtonDisabled())
                         }
                         .padding()
                     }
@@ -164,6 +170,10 @@ struct SetGoalView: View {
                     }
                 }
         }
+    }
+    
+    private func isButtonDisabled() -> Bool {
+        return Double(targetValue) ?? 0 <= 0 || startTime > endTime
     }
     
     private func setGoal() {
